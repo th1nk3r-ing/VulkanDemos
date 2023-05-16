@@ -54,7 +54,7 @@ android {
         }
     }
 }
-task copyTask << {
+task copyTask {
     copy {
         from '../../../examples/assets/shaders/15_Texture3D'
         into 'assets/assets/shaders/15_Texture3D'

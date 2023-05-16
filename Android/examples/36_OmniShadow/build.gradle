@@ -54,7 +54,7 @@ android {
         }
     }
 }
-task copyTask << {
+task copyTask {
     copy {
         from '../../../examples/assets/shaders/36_OmniShadow'
         into 'assets/assets/shaders/36_OmniShadow'

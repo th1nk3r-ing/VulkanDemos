@@ -2,20 +2,26 @@
 
 buildscript {
     repositories {
-        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
-        maven { url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter' }
         google()
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.android.tools.build:gradle:7.1.2'
     }
 }
 
 allprojects {
     repositories {
         google()
-        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
-        maven { url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter' }
     }
+}
+
+// 设置缓存的时效, 避免每次都去通过网络下载依赖
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 24, 'hours'    // 检查远程依赖是否存在更新的间隔时间
+    resolutionStrategy.cacheDynamicVersionsFor 4, 'hours'    // 采用动态版本声明的依赖缓存的检查间隔时间
 }

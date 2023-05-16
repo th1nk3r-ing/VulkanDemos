@@ -54,7 +54,7 @@ android {
         }
     }
 }
-task copyTask << {
+task copyTask {
     copy {
         from '../../../examples/assets/shaders/44_ComputeRaytracing'
         into 'assets/assets/shaders/44_ComputeRaytracing'

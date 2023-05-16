@@ -54,7 +54,7 @@ android {
         }
     }
 }
-task copyTask << {
+task copyTask {
     copy {
         from '../../../examples/assets/shaders/25_Bloom'
         into 'assets/assets/shaders/25_Bloom'

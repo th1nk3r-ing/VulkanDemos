@@ -54,7 +54,7 @@ android {
         }
     }
 }
-task copyTask << {
+task copyTask {
     copy {
         from '../../../examples/assets/shaders/53_SSAO'
         into 'assets/assets/shaders/53_SSAO'

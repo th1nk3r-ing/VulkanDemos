@@ -14,3 +14,4 @@ local.properties
 .vscode/ipch/
 .vscode/settings.json
 imgui.ini
+.cxx/

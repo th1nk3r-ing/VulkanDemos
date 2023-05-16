@@ -54,7 +54,7 @@ android {
         }
     }
 }
-task copyTask << {
+task copyTask {
     copy {
         from '../../../examples/assets/shaders/35_PCFShadow'
         into 'assets/assets/shaders/35_PCFShadow'

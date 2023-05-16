@@ -54,7 +54,7 @@ android {
         }
     }
 }
-task copyTask << {
+task copyTask {
     copy {
         from '../../../examples/assets/shaders/26_SkeletonMatrix4x4'
         into 'assets/assets/shaders/26_SkeletonMatrix4x4'
