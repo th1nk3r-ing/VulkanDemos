@@ -35,17 +35,20 @@ public:
 
     virtual bool Init() override
     {
-        CreateDepthStencil();
+        CreateDepthStencil();   // TODO: 暂时应该用不到...
         CreateRenderPass();
         CreateFrameBuffers();
         CreateSemaphores();
         CreateFences();
         CreateCommandBuffers();
+
         CreateMeshBuffers();
         CreateUniformBuffers();
+
         CreateDescriptorPool();
         CreateDescriptorSetLayout();
         CreateDescriptorSet();
+
         CreatePipelines();
         SetupCommandBuffers();
 
@@ -355,7 +358,7 @@ private:
         dependencies[0].srcAccessMask   = VK_ACCESS_MEMORY_READ_BIT;
         dependencies[0].dstAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
+        // NOTE: 为何要两个 VkSubpassDependency
         dependencies[1].srcSubpass      = 0;
         dependencies[1].dstSubpass      = VK_SUBPASS_EXTERNAL;
         dependencies[1].srcStageMask    = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -464,6 +467,7 @@ private:
     {
         VkDevice device = GetVulkanRHI()->GetDevice()->GetInstanceHandle();
 
+        // NOTE: 可暂时不用 pipelineCache.....
         VkPipelineCacheCreateInfo createInfo;
         ZeroVulkanStruct(createInfo, VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO);
         VERIFYVULKANRESULT(vkCreatePipelineCache(device, &createInfo, VULKAN_CPU_ALLOCATOR, &m_PipelineCache));
@@ -658,6 +662,15 @@ private:
         vkDestroyPipelineLayout(device, m_PipelineLayout, VULKAN_CPU_ALLOCATOR);
     }
 
+    void dumpDataMat4x4(float * pData, const char * name)
+    {
+        ALOGI("[%s %d] %s:[%p]", __func__, __LINE__, name, pData);
+        for (int8_t idx = 0; idx < 4; idx++) {
+            ALOGI("[%s %d] [%.2f] [%.2f] [%.2f] [%.2f]",
+                __func__, __LINE__, pData[idx * 4 + 0], pData[idx * 4 + 1], pData[idx * 4 + 2], pData[idx * 4 + 3]);
+        }
+    }
+
     void UpdateUniformBuffers(float time, float delta)
     {
         VkDevice device = GetVulkanRHI()->GetDevice()->GetInstanceHandle();
@@ -665,6 +678,13 @@ private:
         uint8_t *pData = nullptr;
         VERIFYVULKANRESULT(vkMapMemory(device, m_MVPBuffer.memory, 0, sizeof(UBOData), 0, (void**)&pData));
         std::memcpy(pData, &m_MVPData, sizeof(UBOData));
+
+        ALOGI("[%s %d] ==========>", __func__, __LINE__);
+        float * pTestData = (float *) &m_MVPData;
+        dumpDataMat4x4(pTestData, "model");
+        dumpDataMat4x4(pTestData + 16, "view");
+        dumpDataMat4x4(pTestData + 16 * 2, "projection");
+
         vkUnmapMemory(device, m_MVPBuffer.memory);
     }
 
@@ -685,7 +705,8 @@ private:
 
         VkMemoryAllocateInfo allocInfo;
         ZeroVulkanStruct(allocInfo, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
-        allocInfo.allocationSize  = memReqInfo.size;
+        allocInfo.allocationSize = memReqInfo.size;
+        ALOGI("[%s %d] memoryIdx:[%d]", __func__, __LINE__, memoryTypeIndex);
         allocInfo.memoryTypeIndex = memoryTypeIndex;
         VERIFYVULKANRESULT(vkAllocateMemory(device, &allocInfo, VULKAN_CPU_ALLOCATOR, &m_MVPBuffer.memory));
         VERIFYVULKANRESULT(vkBindBufferMemory(device, m_MVPBuffer.buffer, m_MVPBuffer.memory, 0));
@@ -763,6 +784,7 @@ private:
         GetVulkanRHI()->GetDevice()->GetMemoryManager().GetMemoryTypeFromProperties(memReqInfo.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memoryTypeIndex);
         memAllocInfo.allocationSize  = memReqInfo.size;
         memAllocInfo.memoryTypeIndex = memoryTypeIndex;
+        ALOGI("[%s %d] memoryIdx:[%d]", __func__, __LINE__, memoryTypeIndex);
         VERIFYVULKANRESULT(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &tempVertexBuffer.memory));
         VERIFYVULKANRESULT(vkBindBufferMemory(device, tempVertexBuffer.buffer, tempVertexBuffer.memory, 0));
 
@@ -775,7 +797,13 @@ private:
         VERIFYVULKANRESULT(vkCreateBuffer(device, &vertexBufferInfo, VULKAN_CPU_ALLOCATOR, &m_VertexBuffer.buffer));
 
         vkGetBufferMemoryRequirements(device, m_VertexBuffer.buffer, &memReqInfo);
-        GetVulkanRHI()->GetDevice()->GetMemoryManager().GetMemoryTypeFromProperties(memReqInfo.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memoryTypeIndex);
+        GetVulkanRHI()
+            ->GetDevice()
+            ->GetMemoryManager()
+            .GetMemoryTypeFromProperties(memReqInfo.memoryTypeBits,
+                                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                         &memoryTypeIndex);
+        ALOGI("[%s %d] memoryIdx:[%d]", __func__, __LINE__, memoryTypeIndex);
         memAllocInfo.allocationSize  = memReqInfo.size;
         memAllocInfo.memoryTypeIndex = memoryTypeIndex;
         VERIFYVULKANRESULT(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &m_VertexBuffer.memory));
@@ -790,7 +818,8 @@ private:
 
         vkGetBufferMemoryRequirements(device, tempIndexBuffer.buffer, &memReqInfo);
         GetVulkanRHI()->GetDevice()->GetMemoryManager().GetMemoryTypeFromProperties(memReqInfo.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &memoryTypeIndex);
-        memAllocInfo.allocationSize  = memReqInfo.size;
+        memAllocInfo.allocationSize = memReqInfo.size;
+                ALOGI("[%s %d] memoryIdx:[%d]", __func__, __LINE__, memoryTypeIndex);
         memAllocInfo.memoryTypeIndex = memoryTypeIndex;
         VERIFYVULKANRESULT(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &tempIndexBuffer.memory));
         VERIFYVULKANRESULT(vkBindBufferMemory(device, tempIndexBuffer.buffer, tempIndexBuffer.memory, 0));
@@ -805,6 +834,7 @@ private:
         vkGetBufferMemoryRequirements(device, m_IndicesBuffer.buffer, &memReqInfo);
         GetVulkanRHI()->GetDevice()->GetMemoryManager().GetMemoryTypeFromProperties(memReqInfo.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memoryTypeIndex);
         memAllocInfo.allocationSize  = memReqInfo.size;
+        ALOGI("[%s %d] memoryIdx:[%d]", __func__, __LINE__, memoryTypeIndex);
         memAllocInfo.memoryTypeIndex = memoryTypeIndex;
         VERIFYVULKANRESULT(vkAllocateMemory(device, &memAllocInfo, VULKAN_CPU_ALLOCATOR, &m_IndicesBuffer.memory));
         VERIFYVULKANRESULT(vkBindBufferMemory(device, m_IndicesBuffer.buffer, m_IndicesBuffer.memory, 0));
